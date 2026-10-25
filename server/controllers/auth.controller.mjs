@@ -1,47 +1,56 @@
-import bcrypt from "bcryptjs"
-import userData from "../models/userData.mjs"
+import bcrypt from "bcryptjs";
+import userData from "../models/userData.mjs";
 import OTP from "../models/otp.mjs";
-import {sendOtp} from "../utils/sendOtp.mjs";
-import jwt from "jsonwebtoken"
+import { sendOtp } from "../utils/sendOtp.mjs";
+import jwt from "jsonwebtoken";
 
 export const signup = async (req, res) => {
     try {
         const { name, email, password, confirmPassword, role } = req.body;
-        
-        console.log("STEP 2: body parsed");
-        const normalizedEmail = email.toLowerCase().trim();
-        console.log("STEP 3: email normalized");
-        const existingUser = await userData.findOne({ email: normalizedEmail });
-        if (existingUser) {
-            return res.status(400).json({ message: "Email already exists" });
-        }
-        if (password !== confirmPassword) {
-            return res.status(400).json({ message: "Password doesn't match !" });
-        }
-        console.log("STEP 4: checked existing user");
-        const hashPassword = await bcrypt.hash(password, 10);
-        console.log("STEP 5: password hashed");
-        await userData.create({
-            name,
-            email: normalizedEmail,
-            passwordHash: hashPassword,
-            role: role,
-            status: "Pending"
-        });
 
-        console.log("STEP 6: user created");
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+        const existingUser = await userData.findOne({ email: normalizedEmail });
+
+        if (existingUser && existingUser.isEmailVerified) {
+            return res.status(400).json({ message: "Email already registered. Please log in." });
+        }
+
+        if (password !== confirmPassword) {
+            return res.status(400).json({ message: "Passwords do not match!" });
+        }
+
+        const hashPassword = await bcrypt.hash(password, 10);
+
+        if (existingUser) {
+            existingUser.name = name;
+            existingUser.passwordHash = hashPassword;
+            existingUser.role = role || "student";
+            existingUser.status = "Pending";
+            await existingUser.save();
+        } else {
+            await userData.create({
+                name,
+                email: normalizedEmail,
+                passwordHash: hashPassword,
+                role: role || "student",
+                status: "Pending",
+                isEmailVerified: false
+            });
+        }
 
         await OTP.deleteMany({ email: normalizedEmail });
-        console.log("STEP 7: old OTP deleted");
         const otp = await sendOtp(normalizedEmail);
-        console.log("STEP 8: sendOtp called", otp);
         const otpHash = await bcrypt.hash(otp, 10);
         await OTP.create({
             email: normalizedEmail,
             otpHash: otpHash,
             expiresAt: new Date(Date.now() + 10 * 60 * 1000)
         });
-        
+
         res.status(201).json({ message: "Signup successful. Please verify your email." });
     } catch (error) {
         console.error("Signup error:", error);
@@ -64,7 +73,7 @@ export const verifyEmail = async (req, res) => {
         if (!isValid) {
             return res.status(400).json({ message: "Invalid OTP" });
         }
-        await userData.updateOne({ email: normalizedEmail }, { $set: { isEmailVerified: true } });
+        await userData.updateOne({ email: normalizedEmail }, { $set: { isEmailVerified: true, status: "Active" } });
         await OTP.deleteOne({ email: normalizedEmail });
         res.status(200).json({ message: "Email Verified Successfully!" });
     } catch (error) {

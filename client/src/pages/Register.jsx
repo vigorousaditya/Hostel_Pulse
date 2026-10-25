@@ -62,7 +62,8 @@ export default function Register() {
       setSuccess(true)
       setTimeout(() => navigate('/verify-email'), 3000)
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.')
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false)
     }
