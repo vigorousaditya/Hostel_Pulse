@@ -1,32 +1,41 @@
 import mongoose from "mongoose";
+import dns from "dns";
+
+// Prefer IPv4 for DNS resolution to prevent IPv6 SRV lookup timeouts on Render/cloud hosts
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch (e) {
+  // Not supported on older Node versions
+}
+
+export let lastDbError = null;
 
 export const connectDB = async () => {
   try {
-    const dbURL = process.env.MONGO_URI;
+    let dbURL = process.env.MONGO_URI;
     if (!dbURL) {
       throw new Error("MONGO_URI is not defined in environment variables. Please add it to your Render dashboard.");
     }
 
-    mongoose.connection.on("connected", () => {
-      console.log("MongoDB connected successfully");
-    });
+    // Clean up any stray quotes, spaces, or newlines
+    dbURL = dbURL.trim().replace(/^["']|["']$/g, '').trim();
 
-    mongoose.connection.on("error", (err) => {
-      console.error("MongoDB runtime error:", err.message);
-    });
+    if (mongoose.connection.readyState === 1) {
+      return true;
+    }
 
-    mongoose.connection.on("disconnected", () => {
-      console.warn("MongoDB disconnected");
-    });
-
+    console.log("Connecting to MongoDB Atlas...");
     await mongoose.connect(dbURL, {
-      serverSelectionTimeoutMS: 8000,
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
     });
+
+    lastDbError = null;
+    console.log("✅ MongoDB connected successfully");
+    return true;
   } catch (error) {
+    lastDbError = error.message;
     console.error("❌ MongoDB connection failed:", error.message);
-    console.error("👉 If deploying on Render, make sure:");
-    console.error("   1. In MongoDB Atlas -> Network Access, IP 0.0.0.0/0 (Allow from anywhere) is added.");
-    console.error("   2. MONGO_URI is added in your Render Web Service -> Environment variables.");
     throw error;
   }
 };
