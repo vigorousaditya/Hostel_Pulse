@@ -5,6 +5,7 @@ import authRoutes from "./routes/auth.routes.mjs";
 import studentRoutes from "./routes/student.routes.mjs";
 import adminRoutes from "./routes/admin.routes.mjs";
 import { connectDB, lastDbError } from "./config/db.mjs";
+import { transporter, sendOtp } from "./utils/sendOtp.mjs";
 import cors from "cors";
 
 const app = express();
@@ -46,8 +47,27 @@ app.get('/api/health', async (req, res) => {
     status: "ok", 
     database: dbStatus,
     error: lastDbError,
-    uriConfigured: Boolean(process.env.MONGO_URI)
+    uriConfigured: Boolean(process.env.MONGO_URI),
+    emailConfigured: Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS)
   });
+});
+
+// Test email endpoint for diagnostics
+app.get('/api/test-email', async (req, res) => {
+  try {
+    const to = req.query.email || process.env.EMAIL_SENDER || process.env.EMAIL_USER;
+    const otp = await sendOtp(to);
+    res.json({ success: true, message: `Email sent successfully to ${to}`, otp });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message,
+      emailHost: process.env.EMAIL_HOST,
+      emailPort: process.env.EMAIL_PORT,
+      emailSender: process.env.EMAIL_SENDER,
+      userConfigured: Boolean(process.env.EMAIL_USER)
+    });
+  }
 });
 
 // Guard: Return immediate 503 if database connection is down instead of buffering and timing out

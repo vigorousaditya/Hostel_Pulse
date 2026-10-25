@@ -4,7 +4,7 @@ import nodemailer from "nodemailer";
 
 const emailPort = parseInt(process.env.EMAIL_PORT, 10) || 587;
 
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST || "smtp-relay.brevo.com",
   port: emailPort,
   secure: emailPort === 465,
@@ -80,6 +80,6 @@ This is an automated email. Please do not reply.
     return otp;
   } catch (error) {
     console.error("Failed to send OTP:", error);
-    throw new Error("OTP email failed");
+    throw new Error(`OTP email failed: ${error.message || error}`);
   }
 };
