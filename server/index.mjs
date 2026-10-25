@@ -16,6 +16,21 @@ app.use(cors({
 
 app.use(express.json());
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: "HostelPulse Backend API is running 🚀",
+    status: "online",
+    database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    endpoints: {
+      health: "/api/health",
+      auth: "/api/auth",
+      student: "/api/student",
+      admin: "/api/admin"
+    }
+  });
+});
+
 // Health check endpoint (always accessible)
 app.get('/api/health', async (req, res) => {
   if (mongoose.connection.readyState !== 1) {
