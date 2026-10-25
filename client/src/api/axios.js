@@ -1,16 +1,14 @@
 import axios from 'axios'
 
 const API = axios.create({
-  baseURL: 'https://hostel-pulse-leyj.onrender.com/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://hostel-pulse-leyj.onrender.com/api',
 })
-
 
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem('token')
   if (token) req.headers.Authorization = `Bearer ${token}`
   return req
 })
-
 
 API.interceptors.response.use(
   (res) => res,
