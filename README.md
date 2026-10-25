@@ -76,38 +76,38 @@ This system improves communication and accountability between students and hoste
 - Mobile responsive improvements
 
 ## 🚀 How to Run the Project
- 
+
 ### 🌐 Live Demo
- 
+
 The project is already deployed and accessible here:
- 
-👉 https://d1fwtw1io6mluw.cloudfront.net
- 
+
+👉 
+
 
 ### 💻 Run Locally
- 
+
 Follow these steps to set up and run the project on your local machine.
- 
+
 #### Prerequisites
 - Node.js (v18 or above)
 - MongoDB (local installation or MongoDB Atlas)
 - Git
 #### 1. Clone the Repository
- 
+
 ```bash
 git clone https://github.com/ietlucknowofficial/HostelPulse
 cd hostelPulse
 ```
- 
+
 #### 2. Setup the Backend
- 
+
 ```bash
 cd server
 npm install
 ```
- 
+
 Create a `.env` file inside the `server` directory:
- 
+
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
@@ -115,59 +115,55 @@ JWT_SECRET=your_secret_key
 EMAIL_USER=your_email@example.com
 EMAIL_PASS=your_email_password
 ```
- 
+
 Start the backend server:
- 
+
 ```bash
 # Production mode
 npm start
- 
+
 # Development mode (with auto-reload)
 npm run dev
 ```
- 
+
 The backend will run at `http://localhost:5000`
- 
+
 #### 3. Setup the Frontend
- 
+
 Open a new terminal window:
- 
+
 ```bash
 cd client
 npm install
 ```
- 
+
 Create a `.env` file inside the `client` directory:
- 
+
 ```env
 REACT_APP_API_URL=http://localhost:5000
 ```
- 
+
 Start the frontend:
- 
+
 ```bash
 npm start
 ```
- 
+
 #### 4. Open in Browser
- 
+
 Visit: `http://localhost:3000`
- 
+
 ---
- 
+
 > **Note:** Make sure MongoDB is running locally, or replace `MONGO_URI` with your MongoDB Atlas connection string.
- 
+
 ---
 
 
 ## 👥 Contributors
 
-- Abhinav Singh (2400520100004)
-- Himanshu (2400520100040)
-- Devraj Gupta (2400520100034)
-- Ansh Sharma - 2400520100016
-- Bhavya Nigam (2400520100028)
-  
+
+
 
 
 

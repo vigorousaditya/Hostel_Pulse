@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const API = axios.create({
-  baseURL: 'https://d1fwtw1io6mluw.cloudfront.net/api',
+  baseURL: 'http://localhost:5000/api',
 })
 
 
