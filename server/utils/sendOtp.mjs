@@ -3,14 +3,14 @@ import { generateOTP } from "./generateOTP.mjs";
 import nodemailer from "nodemailer";
 
 export const createTransporter = (port) => {
-  const p = parseInt(port, 10) || 587;
+  const p = parseInt(port, 10) || 2525;
   return nodemailer.createTransport({
     host: process.env.EMAIL_HOST || "smtp-relay.brevo.com",
     port: p,
-    secure: p === 465,
-    connectionTimeout: 5000,
-    greetingTimeout: 5000,
-    socketTimeout: 8000,
+    secure: false,
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 10000,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
@@ -19,10 +19,9 @@ export const createTransporter = (port) => {
 };
 
 export const sendOtp = async (toEmail) => {
-  const configuredPort = parseInt(process.env.EMAIL_PORT, 10) || 587;
-  const portsToTry = [...new Set([configuredPort, 2525, 465, 587])];
-
-  let lastError = null;
+  // Try port 2525 first (port 587 is blocked by Render's firewall)
+  const portsToTry = [2525, 587];
+  const portErrors = [];
 
   for (const port of portsToTry) {
     try {
@@ -81,9 +80,9 @@ This is an automated email. Please do not reply.
       return otp;
     } catch (error) {
       console.warn(`⚠️ Port ${port} delivery failed:`, error.message);
-      lastError = error;
+      portErrors.push(`Port ${port}: ${error.message}`);
     }
   }
 
-  throw new Error(`OTP email failed: ${lastError?.message || "Connection timeout"}`);
+  throw new Error(`OTP email failed: ${portErrors.join(" | ")}`);
 };
