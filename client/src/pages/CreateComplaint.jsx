@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import API from '../api/axios'
@@ -66,6 +66,14 @@ export default function CreateComplaint() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+
+  useEffect(() => {
+    API.get('/student/profile').catch((err) => {
+      if (err.response?.status === 404) {
+        navigate('/complete-profile');
+      }
+    });
+  }, [navigate]);
 
   const update = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }))
 
