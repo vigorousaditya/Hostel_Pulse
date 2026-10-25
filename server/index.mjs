@@ -1,11 +1,12 @@
 import "./config/loadEnv.mjs";
 import express from "express";
 import mongoose from "mongoose";
+import net from "net";
 import authRoutes from "./routes/auth.routes.mjs";
 import studentRoutes from "./routes/student.routes.mjs";
 import adminRoutes from "./routes/admin.routes.mjs";
 import { connectDB, lastDbError } from "./config/db.mjs";
-import { transporter, sendOtp } from "./utils/sendOtp.mjs";
+import { sendOtp } from "./utils/sendOtp.mjs";
 import cors from "cors";
 
 const app = express();
@@ -50,6 +51,31 @@ app.get('/api/health', async (req, res) => {
     uriConfigured: Boolean(process.env.MONGO_URI),
     emailConfigured: Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS)
   });
+});
+
+// Test port reachability from Render
+app.get('/api/test-ports', async (req, res) => {
+  const host = process.env.EMAIL_HOST || "smtp-relay.brevo.com";
+  const ports = [587, 2525, 465, 80, 443];
+  const results = {};
+
+  for (const port of ports) {
+    results[port] = await new Promise((resolve) => {
+      const socket = net.createConnection(port, host);
+      socket.setTimeout(3000);
+      socket.on("connect", () => {
+        socket.end();
+        resolve("OPEN");
+      });
+      socket.on("error", (err) => resolve(`ERROR: ${err.message}`));
+      socket.on("timeout", () => {
+        socket.destroy();
+        resolve("TIMEOUT");
+      });
+    });
+  }
+
+  res.json({ host, results });
 });
 
 // Test email endpoint for diagnostics
